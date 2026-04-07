@@ -85,6 +85,7 @@ public class AuthService {
             throw new RuntimeException("Invalid otp");
         }
         String token = jwtTokenService.createToken(user.get());
+        redisTemplate.delete(getOtpKey(credentials.email()));
         return new AuthResponse(token, user.get().getRole());
 
 

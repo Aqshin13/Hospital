@@ -16,13 +16,13 @@ public class MailProducer {
 
     public void sendOtp(OtpEvent otp){
         template.convertAndSend("exchange",
-                "mailotp-rounting-key",
+                "mailotp-routing-key",
                 otp);
     }
 
     public void sendActivate(ActivateUserEvent userEvent){
         template.convertAndSend("exchange",
-                "mailactivate-rounting-key",
+                "mailactivate-routing-key",
                 userEvent);
     }
 

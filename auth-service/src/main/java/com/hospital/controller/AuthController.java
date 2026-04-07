@@ -40,14 +40,14 @@ public class AuthController {
 
 
 //    active olan istifadeciler login olmaq ucun otp teleb edir sonra otpni girip login olacaqlar
-    @PostMapping("/api/v1/send-otp/{email}")
+    @PostMapping("/send-otp/{email}")
     public ResponseEntity<?> sendOtpToLogin(@PathVariable String email) {
         otpService.sendOtp(email);
         return ResponseEntity.ok("Check your mailbox");
     }
 
 // otp ve mail duzgundurse onda jwt token qaytar...
-    @PostMapping("/api/v1/login")
+    @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@RequestBody Credentials credentials) {
         return ResponseEntity.ok(authService.login(credentials));
     }
