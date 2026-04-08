@@ -92,4 +92,14 @@ public class AuthService {
     }
 
 
+    public void activateUser(String activationToken) {
+       Optional<User> user= userRepository.findByActivateToken(activationToken);
+       if (user.isEmpty()){
+           throw new RuntimeException("Invalid request");
+       }
+       User userDB= user.get();
+       userDB.setActive(true);
+       userDB.setActivateToken(null);
+       userRepository.save(userDB);
+    }
 }

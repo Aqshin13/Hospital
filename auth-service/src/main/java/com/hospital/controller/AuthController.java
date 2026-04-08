@@ -53,4 +53,11 @@ public class AuthController {
     }
 
 
+    @PatchMapping("/activate/{activationToken}")
+    public ResponseEntity<?> activate(@PathVariable String activationToken){
+        authService.activateUser(activationToken);
+        return ResponseEntity.ok("User is activated");
+    }
+
+
 }
