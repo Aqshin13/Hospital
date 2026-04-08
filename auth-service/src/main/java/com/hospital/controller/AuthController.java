@@ -52,7 +52,7 @@ public class AuthController {
         return ResponseEntity.ok(authService.login(credentials));
     }
 
-
+//Registrasiya tamamlanmasi maile url gedecek o url click edildiyine hesap active olacaq
     @PatchMapping("/activate/{activationToken}")
     public ResponseEntity<?> activate(@PathVariable String activationToken){
         authService.activateUser(activationToken);
