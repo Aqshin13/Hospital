@@ -24,7 +24,6 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final MailProducer mailProducer;
-    private final KafkaTemplate<String, Long> producer;
     private final OutboxRepository outboxRepository;
     private final ObjectMapper objectMapper;
 

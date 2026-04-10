@@ -63,7 +63,7 @@ public class AuthService {
 
         }
         String otpKey = getOtpKey(email);
-        String storedOtp = (String) redisTemplate.opsForValue().get(otpKey);
+        String storedOtp =  redisTemplate.opsForValue().get(otpKey);
 
         if (storedOtp == null || !storedOtp.equals(inputOtp)) {
             incrementAttempt(email);
@@ -86,7 +86,7 @@ public class AuthService {
         }
         String token = jwtTokenService.createToken(user.get());
         redisTemplate.delete(getOtpKey(credentials.email()));
-        return new AuthResponse(token, user.get().getRole());
+        return new AuthResponse(token, user.get().getRole(),user.get().getId());
 
 
     }

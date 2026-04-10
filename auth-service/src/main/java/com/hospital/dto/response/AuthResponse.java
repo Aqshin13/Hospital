@@ -2,6 +2,8 @@ package com.hospital.dto.response;
 
 import com.hospital.entity.User;
 
-public record AuthResponse(String token, User.Role role) {
+import java.util.UUID;
+
+public record AuthResponse(String token, User.Role role, UUID id) {
 
 }
