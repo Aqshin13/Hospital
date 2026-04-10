@@ -22,11 +22,20 @@ public class User extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private Role role;
     private String activateToken;
+    @Enumerated(EnumType.STRING)
+    private Status status;
 
 
 
     public static enum Role{
         PATIENT,DOCTOR,ADMIN
+    }
+
+
+    public static enum Status{
+        CREATED,
+        PENDING,
+        FAILED
     }
 
 
