@@ -39,7 +39,7 @@ public class EmailService {
 
         var mailBody = activationEmail
                 .replace("${title}", "Your otp")
-                .replace("${OTP}", otp);
+                .replace("${otp}", otp);
 
         MimeMessage mimeMessage = mailSender.createMimeMessage();
         MimeMessageHelper message = new MimeMessageHelper(mimeMessage, "UTF-8");

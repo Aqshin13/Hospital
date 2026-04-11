@@ -3,16 +3,12 @@ package com.hospital.service;
 
 import com.hospital.config.MailProducer;
 import com.hospital.dto.event.ActivateUserEvent;
-import com.hospital.dto.event.DoctorCreateEvent;
-import com.hospital.dto.request.DoctorCreateRequest;
-import com.hospital.dto.request.PatientCreateRequest;
-import com.hospital.entity.Outbox;
+import com.hospital.dto.request.UserCreateRequest;
 import com.hospital.entity.OutboxRepository;
 import com.hospital.entity.User;
 import com.hospital.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import tools.jackson.databind.ObjectMapper;
 
@@ -29,37 +25,26 @@ public class UserService {
 
 
     @Transactional(rollbackOn = Exception.class)
-    public void saveDoctorUser(DoctorCreateRequest doctorCreateRequest) {
-        User user = userRepository.save(User.builder()
-                .email(doctorCreateRequest.getEmail())
+    public void saveDoctorUser(UserCreateRequest doctorCreateRequest) {
+        userRepository.save(User.builder()
+                .email(doctorCreateRequest.email())
                 .role(User.Role.DOCTOR)
                 .isActive(true)
-                .status(User.Status.PENDING)
+                .isCompleted(false)
                 .build());
-        DoctorCreateEvent doctorCreateEvent = DoctorCreateEvent.builder()
-                .userId(user.getId())
-                .lastName(doctorCreateRequest.getLastName())
-                .firstName(doctorCreateRequest.getFirstName())
-                .build();
-        Outbox outbox = Outbox.builder()
-                .aggregateType("auth-create")
-                .aggregateId(String.valueOf(user.getId()))
-                .type("AuthDoctorCreate")
-                .payload(objectMapper.writeValueAsString(doctorCreateEvent))
-                .build();
-        outboxRepository.save(outbox);
 
     }
 
-    public void savePatientUser(PatientCreateRequest patientCreateRequest) {
+    public void savePatientUser(UserCreateRequest patientCreateRequest) {
         String activateToken = UUID.randomUUID().toString();
         userRepository.save(User.builder()
-                .email(patientCreateRequest.getEmail())
+                .email(patientCreateRequest.email())
                 .role(User.Role.PATIENT)
                 .activateToken(activateToken)
                 .isActive(false)
+                .isCompleted(false)
                 .build());
-        mailProducer.sendActivate(new ActivateUserEvent(patientCreateRequest.getEmail(),
+        mailProducer.sendActivate(new ActivateUserEvent(patientCreateRequest.email(),
                 activateToken
         ));
     }

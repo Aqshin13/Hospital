@@ -22,8 +22,7 @@ public class User extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private Role role;
     private String activateToken;
-    @Enumerated(EnumType.STRING)
-    private Status status;
+    private boolean isCompleted;
 
 
 
@@ -32,11 +31,7 @@ public class User extends BaseEntity {
     }
 
 
-    public static enum Status{
-        CREATED,
-        PENDING,
-        FAILED
-    }
+
 
 
 

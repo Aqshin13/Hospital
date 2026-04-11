@@ -4,6 +4,6 @@ import com.hospital.entity.User;
 
 import java.util.UUID;
 
-public record AuthResponse(String token, User.Role role, UUID id) {
+public record AuthResponse(String token, User.Role role, UUID id,String refreshToken) {
 
 }

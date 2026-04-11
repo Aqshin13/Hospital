@@ -25,53 +25,54 @@ public class SecurityFilter implements GatewayFilter {
 
     SecretKey key = Keys.hmacShaKeyFor("secret-must-be-at-least-32-chars".getBytes());
 
-//    @Override
-//    public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-//
-//        String token = extractJwtFromRequest(exchange
-//                .getRequest()
-//                .getHeaders()
-//                .getFirst("Authorization"));
-//
-//        if (token==null || token.isEmpty()) {
-//            return reject(exchange, HttpStatus.UNAUTHORIZED);
-//        }
-//        User user=null;
-//        try{
-//             user = verifyToken(token);
-//        } catch (ExpiredJwtException e) {
-//            return rejectWithBody(exchange, HttpStatus.UNAUTHORIZED, "TOKEN_EXPIRED");
-//        } catch (JwtException e) {
-//            return rejectWithBody(exchange, HttpStatus.UNAUTHORIZED, "INVALID_TOKEN");
-//        }
-//
-//        if(!user.isActive()){
-//            return reject(exchange, HttpStatus.UNAUTHORIZED);
-//        }
-//
-//        ServerHttpRequest mutatedRequest = exchange.getRequest()
-//                .mutate()
-//                .header("user-id", user.id().toString())
-//                .header("role", user.role())
-//                .build();
-//
-//        ServerWebExchange mutatedExchange = exchange
-//                .mutate()
-//                .request(mutatedRequest)
-//                .build();
-//        return chain.filter(mutatedExchange);
-//    }
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-        return Mono.justOrEmpty(exchange.getRequest().getHeaders().getFirst("Authorization"))
-                .map(this::extractJwtFromRequest)
-                .filter(token -> !token.isEmpty())
-                .switchIfEmpty(reject(exchange, HttpStatus.UNAUTHORIZED).then(Mono.empty()))
-                .flatMap(token -> verifyTokenReactive(token, exchange))
-                .filter(User::isActive)
-                .switchIfEmpty(reject(exchange, HttpStatus.UNAUTHORIZED).then(Mono.empty()))
-                .flatMap(user -> chain.filter(mutateExchange(exchange, user)));
+
+        String token = extractJwtFromRequest(exchange
+                .getRequest()
+                .getHeaders()
+                .getFirst("Authorization"));
+
+        if (token==null || token.isEmpty()) {
+            return reject(exchange, HttpStatus.UNAUTHORIZED);
+        }
+        User user=null;
+        try{
+             user = verifyToken(token);
+        } catch (ExpiredJwtException e) {
+            return rejectWithBody(exchange, HttpStatus.UNAUTHORIZED, "TOKEN_EXPIRED");
+        } catch (JwtException e) {
+            return rejectWithBody(exchange, HttpStatus.UNAUTHORIZED, "INVALID_TOKEN");
+        }
+
+        if(!user.isActive()){
+            return reject(exchange, HttpStatus.UNAUTHORIZED);
+        }
+
+        ServerHttpRequest mutatedRequest = exchange.getRequest()
+                .mutate()
+                .header("user-id", user.id().toString())
+                .header("role", user.role())
+                .header("is-completed",user.isCompleted()+"")
+                .build();
+
+        ServerWebExchange mutatedExchange = exchange
+                .mutate()
+                .request(mutatedRequest)
+                .build();
+        return chain.filter(mutatedExchange);
     }
+//    @Override
+//    public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+//        return Mono.justOrEmpty(exchange.getRequest().getHeaders().getFirst("Authorization"))
+//                .map(this::extractJwtFromRequest)
+//                .filter(token -> !token.isEmpty())
+//                .switchIfEmpty(reject(exchange, HttpStatus.UNAUTHORIZED).then(Mono.empty()))
+//                .flatMap(token -> verifyTokenReactive(token, exchange))
+//                .filter(User::isActive)
+//                .switchIfEmpty(reject(exchange, HttpStatus.UNAUTHORIZED).then(Mono.empty()))
+//                .flatMap(user -> chain.filter(mutateExchange(exchange, user)));
+//    }
 
 
     private Mono<User> verifyTokenReactive(String token, ServerWebExchange exchange) {
@@ -90,6 +91,7 @@ public class SecurityFilter implements GatewayFilter {
         ServerHttpRequest mutatedRequest = exchange.getRequest().mutate()
                 .header("user-id", user.id().toString())
                 .header("role", user.role())
+                .header("is-completed",user.isCompleted()+"")
                 .build();
         return exchange.mutate().request(mutatedRequest).build();
     }
@@ -129,14 +131,17 @@ public class SecurityFilter implements GatewayFilter {
         Jws<Claims> claims = parser.parseClaimsJws(token);
         var subject = claims.getBody().getSubject();
         var tokenSubject = mapper.readValue(subject, TokenSubject.class);
-        return new User(tokenSubject.id(), tokenSubject.active(), tokenSubject.role());
+        return new User(tokenSubject.id(),
+                tokenSubject.active(),
+                tokenSubject.role(),
+                tokenSubject.isCompleted());
 
     }
 
-    public record TokenSubject(UUID id, boolean active, String role) {
+    public record TokenSubject(UUID id, boolean active, String role,boolean isCompleted) {
     }
 
-    public record User(UUID id, boolean isActive, String role) {
+    public record User(UUID id, boolean isActive, String role,boolean isCompleted) {
     }
 
 

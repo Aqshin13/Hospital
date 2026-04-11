@@ -3,13 +3,19 @@ package com.hospital.service;
 
 import com.hospital.dto.request.Credentials;
 import com.hospital.dto.response.AuthResponse;
+import com.hospital.dto.response.RefreshTokenResponse;
+import com.hospital.entity.RefreshToken;
 import com.hospital.entity.User;
 import com.hospital.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Date;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -20,6 +26,7 @@ public class AuthService {
     private final UserRepository userRepository;
     private final RedisTemplate<String, String> redisTemplate;
     private final JwtTokenService jwtTokenService;
+    private final RefreshTokenService refreshTokenService;
 
     private String getAttemptKey(String email) {
         return "otp:attempt:" + email;
@@ -63,7 +70,7 @@ public class AuthService {
 
         }
         String otpKey = getOtpKey(email);
-        String storedOtp =  redisTemplate.opsForValue().get(otpKey);
+        String storedOtp = redisTemplate.opsForValue().get(otpKey);
 
         if (storedOtp == null || !storedOtp.equals(inputOtp)) {
             incrementAttempt(email);
@@ -84,22 +91,77 @@ public class AuthService {
         if (!verifyOtp(credentials.email(), credentials.otp())) {
             throw new RuntimeException("Invalid otp");
         }
+        RefreshToken refreshToken = refreshTokenService.findByUser(user.get());
+        if (refreshToken == null) {
+            refreshToken = RefreshToken
+                    .builder()
+                    .refreshToken(UUID.randomUUID().toString())
+                    .user(user.get())
+                    .expireDate(Date
+                            .from(Instant
+                                    .now()
+                                    .plus(7, ChronoUnit.DAYS)))
+                    .build();
+        }
+        refreshToken.setRefreshToken(UUID.randomUUID().toString());
+        refreshToken.setExpireDate(Date
+                .from(Instant
+                        .now()
+                        .plus(7, ChronoUnit.DAYS)));
+        RefreshToken refTokenDB = refreshTokenService.save(refreshToken);
         String token = jwtTokenService.createToken(user.get());
         redisTemplate.delete(getOtpKey(credentials.email()));
-        return new AuthResponse(token, user.get().getRole(),user.get().getId());
+        return new AuthResponse(token, user.get().getRole(),
+                user.get().getId(),
+                refTokenDB.getRefreshToken());
 
 
     }
 
 
-    public void activateUser(String activationToken) {
-       Optional<User> user= userRepository.findByActivateToken(activationToken);
-       if (user.isEmpty()){
-           throw new RuntimeException("Invalid request");
-       }
-       User userDB= user.get();
-       userDB.setActive(true);
-       userDB.setActivateToken(null);
-       userRepository.save(userDB);
+    public AuthResponse activateUser(String activationToken) {
+        Optional<User> user = userRepository.findByActivateToken(activationToken);
+        if (user.isEmpty()) {
+            throw new RuntimeException("Invalid request");
+        }
+        User userDB = user.get();
+        userDB.setActive(true);
+        userDB.setActivateToken(null);
+        userRepository.save(userDB);
+        RefreshToken refreshToken = refreshTokenService.findByUser(user.get());
+        if (refreshToken == null) {
+            refreshToken = RefreshToken
+                    .builder()
+                    .refreshToken(UUID.randomUUID().toString())
+                    .user(user.get())
+                    .expireDate(Date
+                            .from(Instant
+                                    .now()
+                                    .plus(7, ChronoUnit.DAYS)))
+                    .build();
+        }
+        refreshToken.setRefreshToken(UUID.randomUUID().toString());
+        refreshToken.setExpireDate(Date
+                .from(Instant
+                        .now()
+                        .plus(7, ChronoUnit.DAYS)));
+        RefreshToken refTokenDB = refreshTokenService.save(refreshToken);
+        String token = jwtTokenService.createToken(userDB);
+        return new AuthResponse(token,
+                userDB.getRole(),
+                userDB.getId(),
+                refTokenDB.getRefreshToken());
     }
+
+
+    public RefreshTokenResponse refreshToken(String refreshToken) {
+        Optional<RefreshToken> refreshTokenDB =
+                refreshTokenService
+                        .findByRefreshToken(refreshToken);
+        User user = refreshTokenDB.get().getUser();
+        return new RefreshTokenResponse(jwtTokenService.createToken(user));
+
+    }
+
+
 }

@@ -25,6 +25,7 @@ public class JwtTokenService {
         TokenSubject tokenSubject = new TokenSubject(user.getId(),
                 user.isActive()
                 , user.getRole()
+                ,user.isCompleted()
         );
         try {
             String subject = mapper.writeValueAsString(tokenSubject);
@@ -40,7 +41,10 @@ public class JwtTokenService {
         return null;
     }
 
-    public static record TokenSubject(UUID id, boolean active, User.Role role) {
+    public static record TokenSubject(UUID id,
+                                      boolean active,
+                                      User.Role role,
+                                      boolean isCompleted) {
     }
 
 }

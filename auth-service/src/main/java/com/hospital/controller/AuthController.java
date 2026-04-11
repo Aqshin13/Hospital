@@ -2,9 +2,9 @@ package com.hospital.controller;
 
 
 import com.hospital.dto.request.Credentials;
-import com.hospital.dto.request.DoctorCreateRequest;
-import com.hospital.dto.request.PatientCreateRequest;
+import com.hospital.dto.request.UserCreateRequest;
 import com.hospital.dto.response.AuthResponse;
+import com.hospital.dto.response.RefreshTokenResponse;
 import com.hospital.service.AuthService;
 import com.hospital.service.OtpService;
 import com.hospital.service.UserService;
@@ -24,17 +24,17 @@ public class AuthController {
 
 //    Hekimi admin birbasa register edir ve active olur
     @PostMapping("/doctor/register")
-    public ResponseEntity<?> registerDoctor(@RequestBody DoctorCreateRequest doctorCreateRequest) {
+    public ResponseEntity<?> registerDoctor(@RequestBody UserCreateRequest doctorCreateRequest) {
         userService.saveDoctorUser(doctorCreateRequest);
-        return ResponseEntity.ok("Doctor is creating");
+        return ResponseEntity.ok("Doctor is created");
     }
 
 
 //    Pasiyent evvelce register olur sonra ona mail gedir o url ile active edir ozunu
     @PostMapping("/patient/register")
-    public ResponseEntity<?> registerPatient(@RequestBody PatientCreateRequest patientCreateRequest) {
+    public ResponseEntity<?> registerPatient(@RequestBody UserCreateRequest patientCreateRequest) {
         userService.savePatientUser(patientCreateRequest);
-        return ResponseEntity.ok("Input OTP to register");
+        return ResponseEntity.ok("Check your mailbox");
     }
 
 
@@ -52,11 +52,17 @@ public class AuthController {
         return ResponseEntity.ok(authService.login(credentials));
     }
 
-//Registrasiya tamamlanmasi maile url gedecek o url click edildiyine hesap active olacaq
+//Registrasiya tamamlanmasi maile url gedecek o url click edildiyine hesap active olacaq ve login olacaq
     @PatchMapping("/activate/{activationToken}")
-    public ResponseEntity<?> activate(@PathVariable String activationToken){
-        authService.activateUser(activationToken);
-        return ResponseEntity.ok("User is activated");
+    public ResponseEntity<AuthResponse> activate(@PathVariable String activationToken){
+        return ResponseEntity.ok(authService.activateUser(activationToken));
+    }
+
+
+//    Tokeni bununla refresh edecem
+    @PostMapping("/refresh-token/{refreshToken}")
+    public ResponseEntity<RefreshTokenResponse> refreshToken(@PathVariable String refreshToken){
+        return ResponseEntity.ok(authService.refreshToken(refreshToken));
     }
 
 
