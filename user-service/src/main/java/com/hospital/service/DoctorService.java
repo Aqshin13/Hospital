@@ -34,7 +34,7 @@ public class DoctorService {
         doctorRepository.save(doctor);
         UserCompletedEvent userCompletedEvent=new UserCompletedEvent(doctor.getUserId());
         Outbox outbox= Outbox.builder()
-                .aggregateType("doctor-complete")
+                .aggregateType("user-complete")
                 .type("doctorIsCompleted")
                 .aggregateId(doctor.getUserId().toString())
                 .payload(objectMapper.writeValueAsString(userCompletedEvent))

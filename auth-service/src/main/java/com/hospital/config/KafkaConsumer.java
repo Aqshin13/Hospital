@@ -20,7 +20,7 @@ public class KafkaConsumer {
     private final UserRepository userRepository;
 
     @KafkaListener(
-            topics = "doctor-complete.topic",
+            topics = "user-complete.topic",
             groupId = "doctor-service-group"
     )
     public void consume(ConsumerRecord<String, String> record) {

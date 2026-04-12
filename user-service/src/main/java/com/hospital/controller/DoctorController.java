@@ -10,13 +10,13 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/users")
+@RequestMapping("/api/v1/users/doctor")
 @RequiredArgsConstructor
 public class DoctorController {
 
     private final DoctorService doctorService;
 
-    @PostMapping("/doctor/complete")
+    @PostMapping("/complete")
     public ResponseEntity<?> completeDoctorRegistration(@RequestBody DoctorCreateRequest doctorCreateRequest
     ,@RequestHeader("user-id") UUID authId
     ){

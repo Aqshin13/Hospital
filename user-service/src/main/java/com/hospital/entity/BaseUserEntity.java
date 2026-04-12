@@ -17,7 +17,7 @@ import java.util.UUID;
 @SuperBuilder
 @AllArgsConstructor
 @NoArgsConstructor
-public class BaseUserEntity extends BaseEntity{
+public abstract class BaseUserEntity extends BaseEntity{
 
     @Column(unique = true)
     private UUID userId;
