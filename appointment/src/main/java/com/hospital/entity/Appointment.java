@@ -28,7 +28,6 @@ public class Appointment extends BaseEntity{
     @Version
     private Long version;
 
-
     public enum AppointmentStatus {
         SCHEDULED, CANCELLED, COMPLETED,NO_SHOW
     }

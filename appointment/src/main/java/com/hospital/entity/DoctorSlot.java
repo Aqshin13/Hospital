@@ -17,6 +17,7 @@ public class DoctorSlot extends BaseEntity{
 
 
     private UUID doctorUserId;
+    private long doctorScheduleId;
     private LocalDate date;
     private LocalTime startTime;
     private LocalTime endTime;
